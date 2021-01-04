@@ -1,6 +1,6 @@
-# Sample Promethius and Grafana stack
+# Sample Prometheus and Grafana stack
 
-This is a sample stack for deploying Promethius and Grafana to work with the Promethius Operator located here: <https://github.com/prometheus-operator/prometheus-operator>
+This is a sample stack for deploying Prometheus and Grafana to work with the Prometheus Operator located here: <https://github.com/prometheus-operator/prometheus-operator>
 
 ## Installation instrustions
 
