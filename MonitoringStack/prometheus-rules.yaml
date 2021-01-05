@@ -2,10 +2,6 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   labels:
-    app.kubernetes.io/component: prometheus
-    app.kubernetes.io/name: prometheus
-    app.kubernetes.io/part-of: kube-prometheus
-    app.kubernetes.io/version: v2.22.1
     prometheus: k8s
     role: alert-rules
   name: prometheus-k8s-rules
@@ -778,11 +774,10 @@ spec:
     rules:
     - alert: KubeStateMetricsListErrors
       annotations:
-        description: kube-state-metrics is experiencing errors at an elevated rate
-          in list operations. This is likely causing it to not be able to expose metrics
+        message: kube-state-metrics is experiencing errors at an elevated rate in
+          list operations. This is likely causing it to not be able to expose metrics
           about Kubernetes objects correctly or at all.
         runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubestatemetricslisterrors
-        summary: kube-state-metrics is experiencing errors in list operations.
       expr: |
         (sum(rate(kube_state_metrics_list_total{job="kube-state-metrics",result="error"}[5m]))
           /
@@ -793,11 +788,10 @@ spec:
         severity: critical
     - alert: KubeStateMetricsWatchErrors
       annotations:
-        description: kube-state-metrics is experiencing errors at an elevated rate
-          in watch operations. This is likely causing it to not be able to expose
-          metrics about Kubernetes objects correctly or at all.
+        message: kube-state-metrics is experiencing errors at an elevated rate in
+          watch operations. This is likely causing it to not be able to expose metrics
+          about Kubernetes objects correctly or at all.
         runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubestatemetricswatcherrors
-        summary: kube-state-metrics is experiencing errors in watch operations.
       expr: |
         (sum(rate(kube_state_metrics_watch_total{job="kube-state-metrics",result="error"}[5m]))
           /
@@ -1090,17 +1084,36 @@ spec:
           }} sent from any instance in the {{$labels.job}} cluster is {{ $value |
           humanizePercentage }}.
         runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/alertmanagerclusterfailedtosendalerts
-        summary: All Alertmanager instances in a cluster failed to send notifications.
+        summary: All Alertmanager instances in a cluster failed to send notifications
+          to a critical integration.
       expr: |
-        min by (namespace,service) (
-          rate(alertmanager_notifications_failed_total{job="alertmanager-main",namespace="monitoring"}[5m])
+        min by (namespace,service, integration) (
+          rate(alertmanager_notifications_failed_total{job="alertmanager-main",namespace="monitoring", integration=~`.*`}[5m])
         /
-          rate(alertmanager_notifications_total{job="alertmanager-main",namespace="monitoring"}[5m])
+          rate(alertmanager_notifications_total{job="alertmanager-main",namespace="monitoring", integration=~`.*`}[5m])
         )
         > 0.01
       for: 5m
       labels:
         severity: critical
+    - alert: AlertmanagerClusterFailedToSendAlerts
+      annotations:
+        description: The minimum notification failure rate to {{ $labels.integration
+          }} sent from any instance in the {{$labels.job}} cluster is {{ $value |
+          humanizePercentage }}.
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/alertmanagerclusterfailedtosendalerts
+        summary: All Alertmanager instances in a cluster failed to send notifications
+          to a non-critical integration.
+      expr: |
+        min by (namespace,service, integration) (
+          rate(alertmanager_notifications_failed_total{job="alertmanager-main",namespace="monitoring", integration!~`.*`}[5m])
+        /
+          rate(alertmanager_notifications_total{job="alertmanager-main",namespace="monitoring", integration!~`.*`}[5m])
+        )
+        > 0.01
+      for: 5m
+      labels:
+        severity: warning
     - alert: AlertmanagerConfigInconsistent
       annotations:
         description: Alertmanager instances within the {{$labels.job}} cluster have

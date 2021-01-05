@@ -13,14 +13,13 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/grafana-dashboards: ce13f0b50d04c73fb01da858eb1fb608
         checksum/grafana-datasources: 48faab41f579fc8efde6034391496f6a
       labels:
         app: grafana
     spec:
       containers:
       - env: []
-        image: grafana/grafana:7.3.5
+        image: grafana/grafana:7.3.4
         name: grafana
         ports:
         - containerPort: 3000
@@ -76,6 +75,9 @@ spec:
         - mountPath: /grafana-dashboard-definitions/0/kubelet
           name: grafana-dashboard-kubelet
           readOnly: false
+        - mountPath: /grafana-dashboard-definitions/0/kubernetes-cluster-monitoring-via-prometheus
+          name: grafana-dashboard-kubernetes-cluster-monitoring-via-prometheus
+          readOnly: false
         - mountPath: /grafana-dashboard-definitions/0/namespace-by-pod
           name: grafana-dashboard-namespace-by-pod
           readOnly: false
@@ -106,6 +108,9 @@ spec:
         - mountPath: /grafana-dashboard-definitions/0/proxy
           name: grafana-dashboard-proxy
           readOnly: false
+        - mountPath: /grafana-dashboard-definitions/0/rabbitmq-overview
+          name: grafana-dashboard-rabbitmq-overview
+          readOnly: false
         - mountPath: /grafana-dashboard-definitions/0/scheduler
           name: grafana-dashboard-scheduler
           readOnly: false
@@ -118,7 +123,6 @@ spec:
       nodeSelector:
         beta.kubernetes.io/os: linux
       securityContext:
-        fsGroup: 65534
         runAsNonRoot: true
         runAsUser: 65534
       serviceAccountName: grafana
@@ -162,6 +166,9 @@ spec:
           name: grafana-dashboard-kubelet
         name: grafana-dashboard-kubelet
       - configMap:
+          name: grafana-dashboard-kubernetes-cluster-monitoring-via-prometheus
+        name: grafana-dashboard-kubernetes-cluster-monitoring-via-prometheus
+      - configMap:
           name: grafana-dashboard-namespace-by-pod
         name: grafana-dashboard-namespace-by-pod
       - configMap:
@@ -191,6 +198,9 @@ spec:
       - configMap:
           name: grafana-dashboard-proxy
         name: grafana-dashboard-proxy
+      - configMap:
+          name: grafana-dashboard-rabbitmq-overview
+        name: grafana-dashboard-rabbitmq-overview
       - configMap:
           name: grafana-dashboard-scheduler
         name: grafana-dashboard-scheduler

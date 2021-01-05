@@ -1,20 +1,5 @@
-# Get items with potential dependencies
-$dependantObjs = Get-ChildItem -Include *.yaml -Recurse | Select-String -Pattern "^\s*kind\:\s*(AlertmanagerConfig|PrometheusRule|Alertmanager|PrometheusRuleList|PrometheusList|ServiceMonitorList|PrometheusRule|Prometheus|ServiceMonitor)" | %{$_.FullName}
-
-# Get the CRDs
-$crds = Get-ChildItem -Include *.yaml -Recurse | Select-String -Pattern "^\s*kind\:\s*(CustomResourceDefinition)" | %{$_.FullName}
-
-# Remove the CRDs from the potential dependants
-$dependantObjs = $dependantObjs | Where-Object { $crds -notcontains $_ }
-
-# Get all files
-$allFiles = Get-ChildItem -Include *.yaml -Recurse | Foreach {"$($_.FullName)"}
-
-# Remove dependant objects
-$allFiles = $allFiles | Where-Object { $dependantObjs -notcontains $_ }
-
-# Apply all non-dependant objects
-$allFiles | %{kubectl apply -f $_}
+# Install the setup files
+kubectl apply -f ./MonitoringStack/setup
 
 # Install the monitoring stack, wait for the monitoring.coreos.com stack if still provisioning
 $crd = & kubectl get crd 2>&1
@@ -31,5 +16,5 @@ while (
     $crd = & kubectl get crd 2>&1
 }
 
-# Apply the dependant objects
-$dependantObjs | %{kubectl apply -f $_}
+# Install the remaining files
+kubectl apply -f ./MonitoringStack
